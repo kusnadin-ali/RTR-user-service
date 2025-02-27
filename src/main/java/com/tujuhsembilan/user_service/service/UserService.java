@@ -45,7 +45,6 @@ public class UserService {
             return ResponseEntity.ok(userCustomerDto);
             
         } catch (Exception e) {
-            // TODO: handle exception
             System.out.println(e.getMessage());
             throw e;
         }
