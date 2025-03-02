@@ -15,7 +15,7 @@ import com.tujuhsembilan.user_service.dto.User.UserRestaurantCreateDto;
 import com.tujuhsembilan.user_service.dto.User.UserUpdateDto;
 import com.tujuhsembilan.user_service.model.User;
 import com.tujuhsembilan.user_service.repository.UserRepository;
-import com.tujuhsembilan.user_service.util.ResponseUtil;
+import com.tujuhsembilan.core.utils.ResponseUtil;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

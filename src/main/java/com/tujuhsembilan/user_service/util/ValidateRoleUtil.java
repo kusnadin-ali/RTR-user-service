@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tujuhsembilan.user_service.security.jwt.JwtUtil;
+import com.tujuhsembilan.core.utils.JwtUtil;
 
 import io.jsonwebtoken.Claims;
 

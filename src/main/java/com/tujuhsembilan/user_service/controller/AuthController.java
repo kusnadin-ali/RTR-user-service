@@ -1,65 +1,69 @@
 package com.tujuhsembilan.user_service.controller;
 
 import java.util.Objects;
+import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tujuhsembilan.core.utils.ResponseUtil;
 import com.tujuhsembilan.user_service.dto.Auth.AuthenticationRequest;
 import com.tujuhsembilan.user_service.dto.Auth.AuthenticationResponse;
 import com.tujuhsembilan.user_service.dto.User.UserCustomerDto;
-import com.tujuhsembilan.user_service.security.jwt.JwtUtil;
+import com.tujuhsembilan.user_service.model.User;
+import com.tujuhsembilan.core.utils.JwtUtil;
 import com.tujuhsembilan.user_service.service.UserService;
 
-import io.swagger.v3.oas.annotations.Operation;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/auth")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Tag(name = "Authentication", description = "API untuk autentikasi")
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private JwtUtil jwtUtil;
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
     private final UserService userService;
-    private static final Logger LOG = LoggerFactory.getLogger(AuthController.class.getName());
+
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+            Claims claims = jwtUtil.extractAllClaims(token);
+            return ResponseEntity.ok(claims);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid Token");
+        }
+    }
 
     @PostMapping("/login")
-    @Operation(summary = "Login untuk mendapatkan token JWT")
-    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(
-            @RequestBody AuthenticationRequest authenticationRequest) throws BadCredentialsException {
-        try {
-            LOG.info(authenticationRequest.toString());
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    authenticationRequest.getUsername(), authenticationRequest.getPassword()));
-        } catch (BadCredentialsException badCredentialsException) {
-            LOG.error("Incorrect username or password");
-            throw badCredentialsException;
+    public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
+        // Cari user berdasarkan username
+        Optional<User> userOptional = userService.getUserByUsername(request.getUsername());
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            // Bandingkan password yang diinput dengan yang ada di database
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                String token = jwtUtil.generateToken(user.getUsername(), user.getUserType());
+                AuthenticationResponse response = new AuthenticationResponse(token);
+                return ResponseUtil.success(response);
+            }
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
-
-        return ResponseEntity.ok(new AuthenticationResponse(jwt));
+        return ResponseUtil.error(null, "01", "Invalid username or password", 401);
     }
     
 
