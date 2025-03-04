@@ -20,13 +20,11 @@ import com.tujuhsembilan.core.utils.JwtUtil;
 import com.tujuhsembilan.user_service.service.UserService;
 
 import io.jsonwebtoken.Claims;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "API untuk autentikasi")
 public class AuthController {
 
     private final JwtUtil jwtUtil;

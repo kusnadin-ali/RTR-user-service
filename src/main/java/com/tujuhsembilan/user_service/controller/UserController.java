@@ -2,6 +2,7 @@ package com.tujuhsembilan.user_service.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,63 +23,34 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // @Autowired
-    // private ValidateRoleUtil validateRoleUtil;
-
     @GetMapping("/restaurant")
+    @PreAuthorize("@roleEvaluator.hasAnyRole('ROLE_STAFF', 'ROLE_ADMIN')")
     public ResponseEntity<?> getRestaurant() {
-        // List<String> allowedRoles = Arrays.asList(UserTypeEnum.STAFF.toString(), UserTypeEnum.ADMIN.toString());
-        // // validate UserType
-        // if (!validateRoleUtil.validateRole(header, allowedRoles)) {
-        //     return ResponseUtil.error(null, "01", "Unauthorized");
-        // }
         return userService.getListStaffUserRestaurant();
     }
 
     @GetMapping("/customer")
+    @PreAuthorize("@roleEvaluator.hasAnyRole('ROLE_STAFF', 'ROLE_ADMIN')")
     public ResponseEntity<?> getCustomers() {
-        // List<String> allowedRoles = Arrays.asList(UserTypeEnum.STAFF.toString(), UserTypeEnum.ADMIN.toString());
-        // // validate UserType
-        // if (!validateRoleUtil.validateRole(header, allowedRoles)) {
-        //     return ResponseUtil.error(null, "01", "Unauthorized");
-        // }
-
         return userService.getListCustomer();
     }
 
     @PutMapping("/edit")
     public ResponseEntity<?> editUserDetail(
-        
             @RequestBody UserUpdateDto request
     ) {
-        // List<String> allowedRoles = Arrays.asList(UserTypeEnum.STAFF.toString(), UserTypeEnum.ADMIN.toString(), UserTypeEnum.CUSTOMER.toString());
-        // // validate UserType
-        // if (!validateRoleUtil.validateRole(header, allowedRoles)) {
-        //     return ResponseUtil.error(null, "01", "Unauthorized");
-        // }
-
         return userService.updateDetailUser(request);
     }
 
     @DeleteMapping("/{username}")
-    public ResponseEntity<?> deleteUserDetail( @PathVariable("username") String username) {
-        // List<String> allowedRoles = Arrays.asList(UserTypeEnum.ADMIN.toString());
-        // // validate UserType
-        // if (!validateRoleUtil.validateRole(header, allowedRoles)) {
-        //     return ResponseUtil.error(null, "01", "Unauthorized");
-        // }
-
+    @PreAuthorize("@roleEvaluator.hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> deleteUserDetail( @PathVariable String username) {
         return userService.deleteUser(username);
     }
 
     @PostMapping("/restaurant/add")
+    @PreAuthorize("@roleEvaluator.hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addRestaurant( @RequestBody UserRestaurantCreateDto request) {
-        // List<String> allowedRoles = Arrays.asList(UserTypeEnum.ADMIN.toString());
-        // // validate UserType
-        // if (!validateRoleUtil.validateRole(header, allowedRoles)) {
-        //     return ResponseUtil.error(null, "01", "Unauthorized");
-        // }
-
         return userService.addStaffOrAdminRestaurant(request);
     }
 }
